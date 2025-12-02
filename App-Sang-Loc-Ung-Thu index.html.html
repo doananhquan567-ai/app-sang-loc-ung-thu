@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sàng Lọc Dinh Dưỡng Ung Thư - Bệnh Viện K</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Roboto', sans-serif; background-color: #f3f4f6; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #0d9488; border-radius: 4px; }
+
+        /* Likert Scale Buttons */
+        .btn-option { transition: all 0.2s; border: 1px solid #e5e7eb; }
+        .btn-option:hover { background-color: #f0fdfa; border-color: #0d9488; transform: translateY(-1px); }
+        .btn-option.selected { background-color: #0d9488; color: white; border-color: #0d9488; box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.3); }
+
+        /* Card styles */
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="text-gray-800 antialiased min-h-screen flex flex-col items-center py-6 px-4">
+
+    <!-- HEADER: LOGO BỆNH VIỆN -->
+    <div class="w-full max-w-2xl flex items-center justify-between mb-6 fade-in">
+        <div class="flex items-center gap-3">
+            <div class="bg-teal-600 text-white p-3 rounded-lg shadow-lg">
+                <i class="fa-solid fa-hospital-user text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl text-teal-900 leading-tight">CỔNG SÀNG LỌC<br>DINH DƯỠNG & TÂM LÝ</h1>
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Khoa Ung Bướu</p>
+            </div>
+        </div>
+        <div class="text-right">
+            <p class="text-sm font-semibold text-gray-600" id="current-date"></p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden min-h-[500px] relative fade-in">
+        
+        <!-- MÀN HÌNH 1: WELCOME -->
+        <div id="screen-welcome" class="p-8 h-full flex flex-col">
+            <div class="mb-6 text-center">
+                <img src="https://img.freepik.com/free-vector/doctor-character-background_1270-84.jpg" alt="Doctor" class="w-32 h-32 mx-auto rounded-full object-cover border-4 border-teal-50 shadow-md mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Chào bác, cháu là Trợ lý ảo AI.</h2>
+                <p class="text-gray-600 mt-2">
+                    Để bác sĩ có thể tư vấn chính xác nhất, cháu xin phép hỏi bác một số câu về thói quen ăn uống và suy nghĩ của bác hiện tại.
+                </p>
+            </div>
+
+            <div class="space-y-4 bg-blue-50 p-5 rounded-xl border border-blue-100 mb-6">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-shield-halved text-teal-600 mt-1"></i>
+                    <p class="text-sm text-gray-700"><b>Bảo mật tuyệt đối:</b> Chỉ có bác sĩ điều trị mới xem được kết quả này.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-clock text-teal-600 mt-1"></i>
+                    <p class="text-sm text-gray-700"><b>Thời gian:</b> Khoảng 5 phút (32 câu hỏi).</p>
+                </div>
+            </div>
+
+            <div class="mt-auto">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Họ và tên bệnh nhân:</label>
+                <input type="text" id="patient-name" class="w-full p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-lg mb-4" placeholder="Ví dụ: Nguyễn Văn A">
+                <button onclick="startSurvey()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 rounded-xl text-lg shadow-lg transition-transform active:scale-95 flex items-center justify-center gap-2">
+                    BẮT ĐẦU KHẢO SÁT <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 2: KHẢO SÁT -->
+        <div id="screen-survey" class="hidden flex flex-col h-full">
+            <!-- Progress Bar -->
+            <div class="bg-gray-100 h-2 w-full">
+                <div id="progress-bar" class="bg-teal-500 h-2 transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <div class="p-6 flex-1 overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="bg-teal-100 text-teal-800 text-xs font-bold px-3 py-1 rounded-full uppercase" id="question-category">Thông tin chung</span>
+                    <span class="text-gray-400 text-sm font-medium" id="question-count">1/32</span>
+                </div>
+
+                <h3 id="question-text" class="text-xl font-bold text-gray-800 mb-6 leading-relaxed">Nội dung câu hỏi?</h3>
+
+                <div id="options-container" class="space-y-3">
+                    <!-- Options sẽ được render bằng JS -->
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="p-4 border-t bg-gray-50 flex justify-between items-center">
+                <button onclick="prevQuestion()" id="btn-prev" class="text-gray-500 hover:text-gray-800 font-medium px-4 py-2 opacity-0 pointer-events-none transition-opacity">
+                    <i class="fa-solid fa-chevron-left mr-1"></i> Quay lại
+                </button>
+                <button onclick="nextQuestion()" id="btn-next" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all">
+                    Tiếp theo
+                </button>
+            </div>
+        </div>
+
+        <!-- MÀN HÌNH 3: PHÂN TÍCH (LOADING) -->
+        <div id="screen-loading" class="hidden p-10 flex flex-col items-center justify-center h-full text-center">
+            <div class="relative w-24 h-24 mb-6">
+                <div class="absolute top-0 left-0 w-full h-full border-4 border-gray-200 rounded-full"></div>
+                <div class="absolute top-0 left-0 w-full h-full border-4 border-teal-600 rounded-full border-t-transparent animate-spin"></div>
+                <i class="fa-solid fa-brain absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-teal-600 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Hệ thống đang phân tích...</h3>
+            <p class="text-gray-500 text-sm max-w-xs">Đang so sánh dữ liệu của bác với mô hình Tâm lý học hành vi & Dinh dưỡng lâm sàng.</p>
+        </div>
+
+        <!-- MÀN HÌNH 4: KẾT QUẢ & LỜI KHUYÊN -->
+        <div id="screen-result" class="hidden bg-gray-50">
+            <!-- Header Kết Quả -->
+            <div id="result-header-bg" class="bg-teal-700 p-8 text-white rounded-b-3xl shadow-lg relative overflow-hidden">
+                <div class="absolute top-0 right-0 opacity-10 transform translate-x-10 -translate-y-10">
+                    <i class="fa-solid fa-user-doctor text-9xl"></i>
+                </div>
+                <p class="text-teal-200 text-sm uppercase tracking-wider mb-1">Hồ sơ hành vi của bác:</p>
+                <h2 class="text-3xl font-bold mb-2" id="result-group-name">NHÓM LO ÂU</h2>
+                <p class="text-white opacity-90 text-sm" id="result-group-desc">Nguy cơ suy dinh dưỡng cao do tâm lý.</p>
+            </div>
+
+            <div class="p-6 -mt-6">
+                <!-- Điểm số 3 Trụ Cột -->
+                <div class="bg-white rounded-xl shadow-md p-5 mb-6 grid grid-cols-3 gap-4 border border-gray-100">
+                    <div class="text-center">
+                        <div class="text-xs text-gray-500 mb-1">Tin sai lệch</div>
+                        <div class="text-xl font-bold text-red-500" id="res-score-miscon">4.5</div>
+                        <div class="h-1 w-full bg-gray-100 rounded-full mt-2 overflow-hidden"><div id="bar-miscon" class="h-full bg-red-500" style="width: 90%"></div></div>
+                    </div>
+                    <div class="text-center border-l border-r border-gray-100">
+                        <div class="text-xs text-gray-500 mb-1">Nỗi sợ hãi</div>
+                        <div class="text-xl font-bold text-orange-500" id="res-score-fear">4.8</div>
+                        <div class="h-1 w-full bg-gray-100 rounded-full mt-2 overflow-hidden"><div id="bar-fear" class="h-full bg-orange-500" style="width: 95%"></div></div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xs text-gray-500 mb-1">Tin khoa học</div>
+                        <div class="text-xl font-bold text-blue-500" id="res-score-science">2.1</div>
+                        <div class="h-1 w-full bg-gray-100 rounded-full mt-2 overflow-hidden"><div id="bar-science" class="h-full bg-blue-500" style="width: 40%"></div></div>
+                    </div>
+                </div>
+
+                <!-- PHẦN SO SÁNH (MỚI) -->
+                <div class="bg-white rounded-xl shadow-md p-5 mb-6 border-l-4 border-teal-500">
+                    <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-scale-balanced text-teal-600 mr-2"></i> SO SÁNH VỚI NGƯỜI BÌNH THƯỜNG
+                    </h3>
+                    <div class="space-y-4">
+                        <!-- So sánh 1: Thịt đỏ -->
+                        <div class="grid grid-cols-2 gap-4 text-sm" id="compare-meat">
+                            <div class="p-3 bg-red-50 rounded-lg border border-red-100">
+                                <p class="text-red-800 font-bold mb-1"><i class="fa-solid fa-user-xmark mr-1"></i> Bác hiện tại</p>
+                                <p class="text-gray-600 leading-tight">Cắt bỏ hoàn toàn thịt đỏ vì sợ nuôi u.</p>
+                            </div>
+                            <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+                                <p class="text-green-800 font-bold mb-1"><i class="fa-solid fa-user-check mr-1"></i> Người khỏe mạnh</p>
+                                <p class="text-gray-600 leading-tight">Ăn thịt đỏ vừa phải để có cơ bắp và đề kháng.</p>
+                            </div>
+                        </div>
+                        <!-- So sánh 2: Tâm lý -->
+                        <div class="grid grid-cols-2 gap-4 text-sm" id="compare-mind">
+                            <div class="p-3 bg-orange-50 rounded-lg border border-orange-100">
+                                <p class="text-orange-800 font-bold mb-1"><i class="fa-solid fa-face-worry mr-1"></i> Tâm lý bác</p>
+                                <p class="text-gray-600 leading-tight">Lo âu, sợ hãi mỗi khi ăn uống.</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                <p class="text-blue-800 font-bold mb-1"><i class="fa-solid fa-face-smile mr-1"></i> Tâm lý chuẩn</p>
+                                <p class="text-gray-600 leading-tight">Ăn ngon miệng, tinh thần lạc quan trị bệnh.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LỜI DẶN BÁC SĨ -->
+                <div class="mb-8">
+                    <h3 class="font-bold text-gray-800 mb-3 flex items-center">
+                        <i class="fa-solid fa-user-nurse text-teal-600 mr-2"></i> LỜI DẶN DÒ CỦA BÁC SĨ
+                    </h3>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                        <div class="flex gap-4">
+                            <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" class="w-12 h-12 rounded-full bg-gray-100 p-1">
+                            <div>
+                                <p class="text-gray-600 text-sm italic mb-2" id="doctor-advice-intro">"Chào bác, dựa trên kết quả phân tích, bác sĩ có vài lời khuyên riêng cho bác:"</p>
+                                <ul class="list-disc list-inside space-y-2 text-sm text-gray-800 font-medium" id="doctor-advice-list">
+                                    <!-- Lời khuyên JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Action -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="window.print()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-print"></i> In kết quả
+                    </button>
+                    <button onclick="location.reload()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> Làm lại
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOGIC XỬ LÝ -->
+    <script>
+        // CẤU HÌNH CÂU HỎI TỪ FILE CỦA BẠN (Đã chọn lọc những câu quan trọng nhất để chạy mô hình)
+        // Type: 'radio' (Chọn 1), 'likert' (1-5), 'multi' (Chọn nhiều)
+        // Category: Dùng để tính điểm (1=Miscon, 2=Fear, 3=Science, 4=Diet_Change)
+
+        const surveyData = [
+            // PHẦN I: THÔNG TIN (Không tính điểm)
+            { id: 'q_age', text: "Bác đang ở độ tuổi nào?", type: 'radio', options: ["18-35", "36-50", "51-65", "Trên 65"], cat: 0, tag: 'Chung' },
+            { id: 'q_time', text: "Thời gian phát hiện bệnh bao lâu rồi?", type: 'radio', options: ["Dưới 6 tháng", "6 tháng - 2 năm", "Trên 2 năm"], cat: 0, tag: 'Chung' },
+
+            // PHẦN II: THAY ĐỔI CHẾ ĐỘ ĂN (Dùng để so sánh với người bình thường)
+            { id: 'q_diet_change', text: "Sau khi biết bệnh, bác có thay đổi chế độ ăn không?", type: 'radio', options: ["Không thay đổi", "Thay đổi một chút", "Thay đổi hoàn toàn"], cat: 4, tag: 'Hành vi' },
+            { id: 'q_meat', text: "Với THỊT ĐỎ (bò, lợn...), bác đang ăn như thế nào?", type: 'radio', options: ["Cắt bỏ hoàn toàn", "Giảm bớt", "Giữ nguyên", "Tăng thêm"], cat: 4, tag: 'Hành vi' },
+            { id: 'q_sugar', text: "Với ĐƯỜNG/SỮA, bác đang ăn như thế nào?", type: 'radio', options: ["Cắt bỏ hoàn toàn", "Giảm bớt", "Giữ nguyên", "Tăng thêm"], cat: 4, tag: 'Hành vi' },
+            { id: 'q_method', text: "Bác có đang áp dụng phương pháp nào không?", type: 'radio', options: ["Ăn cân bằng (Theo bác sĩ)", "Thực dưỡng (Gạo lứt muối mè)", "Bỏ đói tế bào", "Thuốc nam/lá cây"], cat: 4, tag: 'Hành vi' },
+
+            // PHẦN III: NIỀM TIN SAI LỆCH (D-MISCON)
+            { id: 'm1', text: "Tôi tin rằng: Kiêng hoàn toàn thịt/đạm là cách duy nhất để 'bỏ đói' ung thư.", type: 'likert', cat: 1, tag: 'Niềm tin' },
+            { id: 'm2', text: "Tôi tin rằng: Các phương pháp tự nhiên tốt hơn thuốc tây và hóa trị.", type: 'likert', cat: 1, tag: 'Niềm tin' },
+            { id: 'm3', text: "Tôi tin rằng: Đường là thức ăn nuôi khối u phát triển nhanh.", type: 'likert', cat: 1, tag: 'Niềm tin' },
+            { id: 'm4', text: "Tôi thường kiểm tra lại lời bác sĩ bằng cách tra Google/Facebook.", type: 'likert', cat: 1, tag: 'Niềm tin' },
+
+            // PHẦN IV: NỖI SỢ HÃI (D-FEAR)
+            { id: 'f1', text: "Tôi thường xuyên cảm thấy hoang mang, lo sợ mỗi khi phải quyết định ăn gì.", type: 'likert', cat: 2, tag: 'Cảm xúc' },
+            { id: 'f2', text: "Tôi thà ăn kiêng kham khổ còn hơn là ăn ngon mà sợ hối hận.", type: 'likert', cat: 2, tag: 'Cảm xúc' },
+            { id: 'f3', text: "Tôi cảm thấy áp lực từ người thân về việc phải kiêng khem.", type: 'likert', cat: 2, tag: 'Cảm xúc' },
+            { id: 'f4', text: "Nếu có tia hy vọng, tôi sẵn sàng thử mọi cách truyền miệng dù bác sĩ ngăn cản.", type: 'likert', cat: 2, tag: 'Cảm xúc' },
+
+            // PHẦN V: KHOA HỌC (D-SCIENCE)
+            { id: 's1', text: "Tôi hoàn toàn tin tưởng và làm theo lời khuyên dinh dưỡng từ bác sĩ điều trị.", type: 'likert', cat: 3, tag: 'Nhận thức' },
+            { id: 's2', text: "Tôi chỉ tin vào những phương pháp có bằng chứng khoa học rõ ràng.", type: 'likert', cat: 3, tag: 'Nhận thức' }
+        ];
+
+        let currentQIndex = 0;
+        let answers = {};
+        
+        // Cập nhật ngày tháng
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        function startSurvey() {
+            const name = document.getElementById('patient-name').value.trim();
+            if (!name) { alert("Bác vui lòng nhập tên để bắt đầu ạ!"); return; }
+            
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-survey').classList.remove('hidden');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = surveyData[currentQIndex];
+            
+            // Cập nhật UI Header
+            document.getElementById('question-category').innerText = q.tag;
+            document.getElementById('question-count').innerText = `${currentQIndex + 1}/${surveyData.length}`;
+            document.getElementById('progress-bar').style.width = `${((currentQIndex + 1) / surveyData.length) * 100}%`;
+            
+            // Render Câu hỏi
+            const qText = document.getElementById('question-text');
+            qText.innerText = q.text;
+            qText.classList.remove('fade-in');
+            void qText.offsetWidth; // Trigger reflow
+            qText.classList.add('fade-in');
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            // Render Đáp án
+            if (q.type === 'likert') {
+                const likertOpts = [
+                    { v: 1, l: "Hoàn toàn phản đối" },
+                    { v: 2, l: "Phản đối" },
+                    { v: 3, l: "Trung lập" },
+                    { v: 4, l: "Đồng ý" },
+                    { v: 5, l: "Hoàn toàn đồng ý" }
+                ];
+                likertOpts.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = `btn-option w-full text-left p-4 rounded-xl flex items-center justify-between font-medium text-gray-700 bg-white ${answers[q.id] === opt.v ? 'selected' : ''}`;
+                    btn.innerHTML = `<span>${opt.l}</span> <span class="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500">${opt.v}</span>`;
+                    btn.onclick = () => selectAnswer(q.id, opt.v);
+                    container.appendChild(btn);
+                });
+            } else {
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = `btn-option w-full text-left p-4 rounded-xl font-medium text-gray-700 bg-white ${answers[q.id] === opt ? 'selected' : ''}`;
+                    btn.innerText = opt;
+                    btn.onclick = () => selectAnswer(q.id, opt);
+                    container.appendChild(btn);
+                });
+            }
+
+            // Logic nút Back
+            const btnPrev = document.getElementById('btn-prev');
+            if (currentQIndex > 0) {
+                btnPrev.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                btnPrev.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function selectAnswer(qid, val) {
+            answers[qid] = val;
+            renderQuestion(); // Re-render để highlight
+            setTimeout(() => nextQuestion(), 250); // Auto next nhẹ nhàng
+        }
+
+        function nextQuestion() {
+            if (answers[surveyData[currentQIndex].id] === undefined) {
+                alert("Bác vui lòng chọn một đáp án nhé!");
+                return;
+            }
+            
+            if (currentQIndex < surveyData.length - 1) {
+                currentQIndex++;
+                renderQuestion();
+            } else {
+                finishSurvey();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQIndex > 0) {
+                currentQIndex--;
+                renderQuestion();
+            }
+        }
+
+        function finishSurvey() {
+            document.getElementById('screen-survey').classList.add('hidden');
+            document.getElementById('screen-loading').classList.remove('hidden');
+            setTimeout(analyzeAndShowResult, 2000);
+        }
+
+        function analyzeAndShowResult() {
+            // 1. TÍNH ĐIỂM
+            let sMiscon = 0, cMiscon = 0;
+            let sFear = 0, cFear = 0;
+            let sScience = 0, cScience = 0;
+
+            surveyData.forEach(q => {
+                if (q.cat === 1) { sMiscon += answers[q.id]; cMiscon++; }
+                if (q.cat === 2) { sFear += answers[q.id]; cFear++; }
+                if (q.cat === 3) { sScience += answers[q.id]; cScience++; }
+            });
+
+            const scoreM = (sMiscon / cMiscon).toFixed(1);
+            const scoreF = (sFear / cFear).toFixed(1);
+            const scoreS = (sScience / cScience).toFixed(1);
+
+            // 2. PHÂN LOẠI NHÓM
+            let group = "", desc = "", advice = [], colorClass = "";
+            
+            if (scoreF >= 3.5 && scoreM >= 3.5) {
+                group = "NHÓM LO ÂU & HOANG MANG";
+                desc = "Bác đang bị nỗi sợ chi phối, dẫn đến kiêng khem sai lầm.";
+                colorClass = "bg-red-600";
+                advice = [
+                    "Bác ơi, nỗi sợ đang làm hại bác hơn là bệnh tật. Hãy bình tĩnh lại.",
+                    "Dừng ngay việc cắt bỏ thịt đỏ. Cơ thể bác đang 'kêu cứu' vì thiếu đạm.",
+                    "Đừng đọc tin trên mạng nữa, chỉ nghe bác sĩ điều trị thôi.",
+                    "Nếu cảm thấy quá áp lực, hãy chia sẻ với bác sĩ để được hỗ trợ tâm lý."
+                ];
+            } else if (scoreM >= 3.5) {
+                group = "NHÓM TÍN ĐỒ THỰC DƯỠNG";
+                desc = "Bác tin vào phương pháp tự nhiên quá mức, bỏ qua y học hiện đại.";
+                colorClass = "bg-yellow-600";
+                advice = [
+                    "Thực dưỡng tốt, NHƯNG không thể thay thế thuốc chữa ung thư.",
+                    "Bác tuyệt đối không được tự ý bỏ thuốc viện để uống lá cây.",
+                    "Hãy kết hợp: Ăn thực dưỡng nhưng phải bổ sung thêm nấm, đậu hũ, các loại hạt để đủ chất.",
+                    "Nếu thấy sụt cân, phải báo bác sĩ ngay lập tức."
+                ];
+            } else if (scoreS >= 3.5 && scoreM < 3) {
+                group = "NHÓM KHOA HỌC (AN TOÀN)";
+                desc = "Tuyệt vời! Bác có kiến thức rất chuẩn và tâm lý vững vàng.";
+                colorClass = "bg-green-600";
+                advice = [
+                    "Bác đang làm rất tốt, hãy duy trì tinh thần lạc quan này.",
+                    "Tiếp tục ăn đa dạng, đủ thịt cá rau quả như hiện tại.",
+                    "Bác có thể giúp đỡ, động viên những bệnh nhân khác đang lo lắng."
+                ];
+            } else {
+                group = "NHÓM THỤ ĐỘNG";
+                desc = "Bác chưa quan tâm nhiều đến dinh dưỡng, ăn uống còn tùy hứng.";
+                colorClass = "bg-gray-500";
+                advice = [
+                    "Bác cần chủ động ăn uống hơn để có sức truyền hóa chất.",
+                    "Nhờ con cháu tìm hiểu thêm về tháp dinh dưỡng cho người bệnh.",
+                    "Cố gắng chia nhỏ bữa ăn, đừng đợi đói mới ăn."
+                ];
+            }
+
+            // 3. TẠO NỘI DUNG SO SÁNH (TÍNH NĂNG MỚI)
+            // So sánh Thịt đỏ
+            const meatAns = answers['q_meat'];
+            let meatUserHTML = "", meatNormalHTML = "";
+            if (meatAns === "Cắt bỏ hoàn toàn" || meatAns === "Giảm bớt") {
+                meatUserHTML = `<span class='text-red-600 font-bold'>Kiêng khem/Sợ hãi</span>. Thiếu nguyên liệu để tái tạo tế bào.`;
+                meatNormalHTML = `<span class='text-green-600 font-bold'>Ăn đủ lượng</span>. Giúp duy trì khối cơ và sức đề kháng.`;
+            } else {
+                meatUserHTML = `<span class='text-green-600 font-bold'>Ăn bình thường/Tăng thêm</span>. Rất tốt!`;
+                meatNormalHTML = `<span class='text-green-600 font-bold'>Ăn đủ lượng</span>. Giúp duy trì khối cơ.`;
+            }
+
+            // So sánh Tâm lý (Dựa trên điểm Fear)
+            let mindUserHTML = "", mindNormalHTML = "";
+            if (scoreF >= 3.5) {
+                mindUserHTML = `<span class='text-red-600 font-bold'>Lo âu/Hoảng sợ</span>. Stress làm giảm miễn dịch.`;
+                mindNormalHTML = `<span class='text-blue-600 font-bold'>Lạc quan/Tin tưởng</span>. Tinh thần tốt giúp thuốc tác dụng tốt hơn.`;
+            } else {
+                mindUserHTML = `<span class='text-blue-600 font-bold'>Bình tĩnh/Vững vàng</span>. Rất tốt!`;
+                mindNormalHTML = `<span class='text-blue-600 font-bold'>Lạc quan/Tin tưởng</span>. Tinh thần tốt giúp thuốc tác dụng tốt hơn.`;
+            }
+
+            // RENDER UI
+            document.getElementById('screen-loading').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            // Header
+            document.getElementById('result-header-bg').className = `p-8 text-white rounded-b-3xl shadow-lg relative overflow-hidden ${colorClass}`;
+            document.getElementById('result-group-name').innerText = group;
+            document.getElementById('result-group-desc').innerText = desc;
+
+            // Scores
+            document.getElementById('res-score-miscon').innerText = scoreM;
+            document.getElementById('bar-miscon').style.width = `${(scoreM/5)*100}%`;
+            
+            document.getElementById('res-score-fear').innerText = scoreF;
+            document.getElementById('bar-fear').style.width = `${(scoreF/5)*100}%`;
+
+            document.getElementById('res-score-science').innerText = scoreS;
+            document.getElementById('bar-science').style.width = `${(scoreS/5)*100}%`;
+
+            // Comparison Render
+            document.getElementById('compare-meat').innerHTML = `
+                <div class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <p class="text-gray-800 font-bold mb-1 text-xs uppercase"><i class="fa-solid fa-user-xmark mr-1"></i> Bác hiện tại</p>
+                    <p class="text-gray-600 text-sm leading-tight">${meatUserHTML}</p>
+                </div>
+                <div class="p-3 bg-teal-50 rounded-lg border border-teal-100 shadow-sm">
+                    <p class="text-teal-800 font-bold mb-1 text-xs uppercase"><i class="fa-solid fa-user-check mr-1"></i> Khuyến nghị chuẩn</p>
+                    <p class="text-gray-600 text-sm leading-tight">${meatNormalHTML}</p>
+                </div>
+            `;
+            document.getElementById('compare-mind').innerHTML = `
+                 <div class="p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <p class="text-gray-800 font-bold mb-1 text-xs uppercase"><i class="fa-solid fa-brain mr-1"></i> Tâm lý của bác</p>
+                    <p class="text-gray-600 text-sm leading-tight">${mindUserHTML}</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg border border-blue-100 shadow-sm">
+                    <p class="text-blue-800 font-bold mb-1 text-xs uppercase"><i class="fa-solid fa-smile mr-1"></i> Tâm lý chuẩn</p>
+                    <p class="text-gray-600 text-sm leading-tight">${mindNormalHTML}</p>
+                </div>
+            `;
+
+            // Advice Render
+            const adviceList = document.getElementById('doctor-advice-list');
+            adviceList.innerHTML = '';
+            advice.forEach(txt => {
+                const li = document.createElement('li');
+                li.innerText = txt;
+                adviceList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
